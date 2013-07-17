@@ -8,3 +8,6 @@ If form validation takes most of your time and others validators don't allow you
 My aim creating this plugin is to take back passing and uncountable number of parameters to the plugin and let the goblins make the most of your work even if you know barelly nothing about JavaScript and jQuery.
 
 All validation messages and alerts will be shown on the same way in all the major browsers so that the user interface does not change a lot from a browser to another unlike what happens when using default browser's validations.
+
+How to use it:
+==============
