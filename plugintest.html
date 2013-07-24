@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon">
+    <title>Plugin testing</title>
+    <!--link rel="stylesheet" type="text/css" href="styles/style.css"-->
+    <script>window.jQuery || document.write('<script src="jquery.min.js">\x3C/script>');</script>
+    <script src="jquery.formvalidator.js"></script>
+    <style type="text/css">
+      .hidden{display:none;}
+    </style>
+  </head>
+  <body>
+    <form id="form" method="post">
+      <div class="form-elem">
+        <label for="i1">Input text</label>
+        <input type="text" name="i1" id="i1" required="required" data-minlength="2" data-maxlength="8" pattern="[0-9][A-Z]*"/>
+        <div class="clue hidden">Max length:6; Min length:2; Required:true; Alfanumeric pattern uppercase</div>
+      </div>
+      <div class="form-elem">
+        <label for="i2">Input text</label>
+        <input type="number" name="i2" id="i2" required="required" min="2" max="8"/>
+        <div class="clue hidden">Max value:8; Min value:2; Required:true;</div>
+      </div>
+      <button>Enviar</button>
+    </form>
+    <script type="text/javascript">
+      $('#form').formvalidator();
+    </script>
+  </body>
+</html>
