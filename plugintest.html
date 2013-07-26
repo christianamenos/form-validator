@@ -15,7 +15,7 @@
     <form id="form" method="post">
       <div class="form-elem">
         <label for="i1">Input text</label>
-        <input type="text" name="i1" id="i1" required="required" data-minlength="2" data-maxlength="8" pattern="[0-9][A-Z]*"/>
+        <input type="text" name="i1" id="i1" required="required" data-minlength="4" data-maxlength="2" pattern="[0-9][A-Z]*"/>
         <div class="clue hidden">Max length:6; Min length:2; Required:true; Alfanumeric pattern uppercase</div>
       </div>
       <div class="form-elem">
@@ -26,7 +26,7 @@
       <button>Enviar</button>
     </form>
     <script type="text/javascript">
-      $('#form').formvalidator();
+      $('#form').formvalidator({liveValidation:true});
     </script>
   </body>
 </html>

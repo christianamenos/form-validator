@@ -52,15 +52,20 @@
  * ****************************************************************************
  */
 (function($) {
+  
+  var errorMessages = {
+    needNumericParam : 'The value must be a number.',
+    minValueMustbeLower : 'Min value must be lower than max.'
+  };
   //PRIVATE FUNCTIONS
 
-  /****************************
+  /*****************************************************************************
    * Description: this function will serve as a mere alias for console.log
    * message. In case there is not such a cappability it will throw an alert.
    * In params:
    *  @obj {object}: variable to be debugged
    * Return: none
-   ****************************/
+   ****************************************************************************/
   function _log(obj) {
     if (window.console) {
       console.log(obj);
@@ -68,18 +73,78 @@
       alert(obj);
     }
   }
+  
+  function _isPositiveNumber(v){
+    var re = /^\d+$/;
+    return re.test(v);
+  }
 
-  function _validateInput(el) {
-    _log(el)
+  function _inputValidate(el) {
+    var minLength = el.attr('data-minlength');
+    if(typeof minLength !== 'undefined'){
+      if(_isPositiveNumber(minLength)){
+        if(el.val().length < minLength){
+          //TODO: add error class and show clue error
+          _log('TODO: value\'s length is lower than specified');
+          return false;
+        }
+      }else{//help for programmer in order to locate errors in his/her code
+        _log(el.attr('id')+' - minLength error: '+errorMessages.needNumericParam);
+        return false;
+      }
+    }
+    var maxLength = el.attr('data-maxlength');
+    if(typeof maxLength !== 'undefined'){
+      if(_isPositiveNumber(maxLength)){
+        if(typeof minLength !== 'undefined' && minLength > maxLength){
+          _log(el.attr('id')+' - maxLength error: '+errorMessages.minValueMustbeLower);
+          return false;
+        }
+        if(el.val().length > maxLength){
+          //TODO: add error class and show clue error
+          _log('TODO: value\'s length is greater than specified');
+          return false;
+        }
+      }else{
+        _log(el.attr('id')+' - maxLength error: '+errorMessages.needNumericParam);
+        return false;
+      }
+    }
+    return true;
+  }
+
+  function _selectValidate(el) {
+    _log(el);
     return false;
   }
 
-  function _validateSelect(el) {
+  function _textareaValidate(el) {
+    _log(el);
     return false;
   }
 
-  function _validateTextarea(el) {
-    return false;
+  function _inputBinding(el) {
+    el.on('keyup', function(e) {
+      _inputValidate($(e.target));
+    });
+    el.on('change', function(e) {
+      _inputValidate($(e.target));
+    });
+  }
+
+  function _selectBinding(el) {
+    el.on('change', function(e) {
+      _selectValidate($(e.target));
+    });
+  }
+
+  function _textareaBinding(el) {
+    el.on('keyup', function(e) {
+      _textareaValidate($(e.target));
+    });
+    el.on('change', function(e) {
+      _textareaValidate($(e.target));
+    });
   }
 
   //PLUGIN CONSTRUCTOR
@@ -90,13 +155,16 @@
    * @focusFirst {bool}: if there are error we set the focus on the first 
    * element.
    * @stopOnError {bool}: if an error is found we stop looking for more errors.
+   * @liveValidation {bool}: each time an input changes it's value the field is
+   * validated. Otherwise validate will be activated on form's submit.
    ****************************************************************************/
   jQuery.fn.formvalidator = function(options) {
     //Default plugin's attributes
     var defaults = {
       html5: false,
       focusFirst: true,
-      stopOnError: false
+      stopOnError: false,
+      liveValidation: false
     };
     //Option settings. Overwritten if defined by the programmer
     var o = jQuery.extend(defaults, options);
@@ -110,12 +178,24 @@
        */
       if (o.html5 === false) {
         e.attr('novalidate', true);
+        //if set a live validation behaviour assign a key and change binding to each input, select and textarea
+        if (o.liveValidation) {
+          e.find('input').each(function(i, v) {
+            _inputBinding($(v));
+          });
+          e.find('select').each(function(i, v) {
+            _selectBinding($(v));
+          });
+          e.find('input').each(function(i, v) {
+            _textareaBinding($(v));
+          });
+        }
         e.on('submit', function(event) {
           //We look for the fields present on the current form in order to validate their values
           var correct = true;
           var first = null;
           e.find('input').each(function(i, v) {
-            if (!_validateInput($(v))) {
+            if (!_inputValidate($(v))) {
               correct = false;
               if (first === null)
                 first = $(v);
@@ -126,7 +206,7 @@
           });
           if (!o.stopOnError || correct) {
             e.find('select').each(function(i, v) {
-              if (!_validateSelect($(v))) {
+              if (!_selectValidate($(v))) {
                 correct = false;
                 if (first === null)
                   first = $(v);
@@ -138,7 +218,7 @@
           }
           if (!o.stopOnError || correct) {
             e.find('textarea').each(function(i, v) {
-              if (!_validateTextarea($(v))) {
+              if (!_textareaValidate($(v))) {
                 correct = false;
                 if (first === null)
                   first = $(v);
@@ -152,7 +232,7 @@
           if (o.focusFirst) {
             $('html, body').animate({
               scrollTop: first.offset().top
-            }, 'fast', 'swing', function(){
+            }, 'fast', 'swing', function() {
               first.focus();
             });
           }
@@ -161,5 +241,4 @@
       }
     });
   };
-
 })(jQuery);
