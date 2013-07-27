@@ -52,10 +52,10 @@
  * ****************************************************************************
  */
 (function($) {
-  
+
   var errorMessages = {
-    needNumericParam : 'The value must be a number.',
-    minValueMustbeLower : 'Min value must be lower than max.'
+    needNumericParam: 'The value must be a number.',
+    minValueMustbeLower: 'Min value must be lower than max.'
   };
   //PRIVATE FUNCTIONS
 
@@ -73,76 +73,149 @@
       alert(obj);
     }
   }
-  
-  function _isPositiveNumber(v){
-    var re = /^\d+$/;
+
+  /*****************************************************************************
+   * Description: this function checks if the a value is a natural numer.
+   * In params:
+   *  @v {number}: variable to be checked
+   * Return: none
+   ****************************************************************************/
+  function _isPositiveNumber(v) {
+    var re = /^[1-9]*[0-9]$/;
     return re.test(v);
   }
 
+  /*****************************************************************************
+   * Description: sets error actions for a form field.
+   * In params:
+   *  @el {jquery elem}: element to make changes
+   * Return: none
+   ****************************************************************************/
+  function _setError(el) {
+    el.parent().addClass('error');
+    el.parent().find('.clue').removeClass('hidden');
+  }
+
+  /*****************************************************************************
+   * Description: unsets error actions for a form field.
+   * In params:
+   *  @el {jquery elem}: element to make changes
+   * Return: none
+   ****************************************************************************/
+  function _unsetError(el) {
+    el.parent().removeClass('error');
+    el.parent().find('.clue').addClass('hidden');
+  }
+
+  /*****************************************************************************
+   * Description: this function checks if the input is correct looking for the 
+   * html5 attributes and data-attributes set on the code.
+   * In params:
+   *  @el {jquery elem}: element to check correctness
+   * Return: boolean
+   ****************************************************************************/
   function _inputValidate(el) {
+    if (typeof el.attr('required') !== 'undefined' && el.val().length < 1) {
+      _setError(el);
+      return false;
+    }
     var minLength = el.attr('data-minlength');
-    if(typeof minLength !== 'undefined'){
-      if(_isPositiveNumber(minLength)){
-        if(el.val().length < minLength){
-          //TODO: add error class and show clue error
-          _log('TODO: value\'s length is lower than specified');
+    if (typeof minLength !== 'undefined') {
+      if (_isPositiveNumber(minLength)) {
+        if (el.val().length < parseInt(minLength)) {
+          _setError(el);
           return false;
         }
-      }else{//help for programmer in order to locate errors in his/her code
-        _log(el.attr('id')+' - minLength error: '+errorMessages.needNumericParam);
+      } else {//help for programmer in order to locate errors in his/her code
+        _log(el.attr('id') + ' - minLength error: ' + errorMessages.needNumericParam);
         return false;
       }
     }
     var maxLength = el.attr('data-maxlength');
-    if(typeof maxLength !== 'undefined'){
-      if(_isPositiveNumber(maxLength)){
-        if(typeof minLength !== 'undefined' && minLength > maxLength){
-          _log(el.attr('id')+' - maxLength error: '+errorMessages.minValueMustbeLower);
+    if (typeof maxLength !== 'undefined') {
+      if (_isPositiveNumber(maxLength)) {
+        if (typeof minLength !== 'undefined' && parseInt(minLength) > parseInt(maxLength)) {
+          _log(el.attr('id') + ' - maxLength error: ' + errorMessages.minValueMustbeLower);
           return false;
         }
-        if(el.val().length > maxLength){
-          //TODO: add error class and show clue error
-          _log('TODO: value\'s length is greater than specified');
+        if (el.val().length > parseInt(maxLength)) {
+          _setError(el);
           return false;
         }
-      }else{
-        _log(el.attr('id')+' - maxLength error: '+errorMessages.needNumericParam);
+      } else {
+        _log(el.attr('id') + ' - maxLength error: ' + errorMessages.needNumericParam);
         return false;
       }
     }
+    _unsetError(el);
     return true;
   }
 
+  /*****************************************************************************
+   * Description: this function checks if the select is correct looking for the 
+   * html5 attributes and data-attributes set on the code.
+   * In params:
+   *  @el {jquery elem}: element to check correctness
+   * Return: boolean
+   ****************************************************************************/
   function _selectValidate(el) {
     _log(el);
     return false;
   }
 
+  /*****************************************************************************
+   * Description: this function checks if the textarea is correct looking for the 
+   * html5 attributes and data-attributes set on the code.
+   * In params:
+   *  @el {jquery elem}: element to check correctness
+   * Return: boolean
+   ****************************************************************************/
   function _textareaValidate(el) {
     _log(el);
     return false;
   }
 
+  /*****************************************************************************
+   * Description: this function is in charge to bind the events that may change
+   * the value of the input fields.
+   * In params:
+   *  @el {jquery elem}: element to set bindings
+   * Return: none
+   ****************************************************************************/
   function _inputBinding(el) {
     el.on('keyup', function(e) {
       _inputValidate($(e.target));
     });
-    el.on('change', function(e) {
+    el.on('focusout', function(e) {
       _inputValidate($(e.target));
     });
   }
 
+  /*****************************************************************************
+   * Description: this function is in charge to bind the events that may change
+   * the value of the select fields.
+   * In params:
+   *  @el {jquery elem}: element to set bindings
+   * Return: none
+   ****************************************************************************/
   function _selectBinding(el) {
-    el.on('change', function(e) {
+    el.on('focusout', function(e) {
       _selectValidate($(e.target));
     });
   }
 
+  /*****************************************************************************
+   * Description: this function is in charge to bind the events that may change
+   * the value of the select fields.
+   * In params:
+   *  @el {jquery elem}: element to set bindings
+   * Return: none
+   ****************************************************************************/
   function _textareaBinding(el) {
     el.on('keyup', function(e) {
       _textareaValidate($(e.target));
     });
-    el.on('change', function(e) {
+    el.on('focusout', function(e) {
       _textareaValidate($(e.target));
     });
   }
@@ -186,7 +259,7 @@
           e.find('select').each(function(i, v) {
             _selectBinding($(v));
           });
-          e.find('input').each(function(i, v) {
+          e.find('textarea').each(function(i, v) {
             _textareaBinding($(v));
           });
         }

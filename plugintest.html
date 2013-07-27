@@ -8,14 +8,20 @@
     <script>window.jQuery || document.write('<script src="jquery.min.js">\x3C/script>');</script>
     <script src="jquery.formvalidator.js"></script>
     <style type="text/css">
+      body{font-family:sans-serif;font-size:14px;}
       .hidden{display:none;}
+      input, select, textarea{border:1px solid steelblue;border-radius:2px;}
+      .form-elem{margin-bottom:4px;}
+      .form-elem .clue{font-size:12px;}
+      .form-elem.error{color:crimson;}
+      .form-elem.error input, .form-elem select, .form-elem textarea{border-color:crimson;color:crimson;}
     </style>
   </head>
   <body>
     <form id="form" method="post">
       <div class="form-elem">
         <label for="i1">Input text</label>
-        <input type="text" name="i1" id="i1" required="required" data-minlength="4" data-maxlength="2" pattern="[0-9][A-Z]*"/>
+        <input type="text" name="i1" id="i1" required="required" data-minlength="2" data-maxlength="8" pattern="[0-9][A-Z]*"/>
         <div class="clue hidden">Max length:6; Min length:2; Required:true; Alfanumeric pattern uppercase</div>
       </div>
       <div class="form-elem">
