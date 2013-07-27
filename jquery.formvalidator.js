@@ -51,6 +51,19 @@
  *
  * ****************************************************************************
  */
+
+
+/*
+ * TODO LIST:
+ * -> regular expression tag
+ * -> ajax (webservice checking)
+ * -> date
+ * -> datetime
+ * -> alphanumeric
+ * -> free etry (all characters allowed)
+ * -> textarea
+ * -> select
+ */
 (function($) {
 
   var errorMessages = {
@@ -92,7 +105,7 @@
    * Return: boolean
    ****************************************************************************/
   function _isInteger(v) {
-    var re = /^\-?[1-9]*[0-9]$/;
+    var re = /^-?[1-9]*[0-9]$/;
     return re.test(v.toString());
   }
 
@@ -103,9 +116,15 @@
    * Return: boolean
    ****************************************************************************/
   function _isDecimal(v, precision) {
-    var re = /^\-?[1-9]*[0-9](\.[0-9]+)?$/;
-    if (typeof precision === 'undefined' && _isNatural(precision)) {
+    var re = /^-?[1-9]*[0-9](\.[0-9]+)?$/;
+    if(o.comaDecimal){
+      re = /^-?[1-9]*[0-9](,[0-9]+)?$/;
+    }
+    if (typeof precision !== 'undefined' && _isNatural(precision)) {
       re = new RegExp('/^\-?[1-9]*[0-9](\.[0-9]{' + precision + '})?$/');
+      if(o.comaDecimal){
+        re = new RegExp('/^\-?[1-9]*[0-9](,[0-9]{' + precision + '})?$/');
+      }
     }
     return re.test(v.toString());
   }
@@ -118,7 +137,7 @@
    ****************************************************************************/
   function _isPositiveDecimal(v, precision) {
     var re = /^[1-9]*[0-9](\.[0-9]+)?$/;
-    if (typeof precision === 'undefined' && _isNatural(precision)) {
+    if (typeof precision !== 'undefined' && _isNatural(precision)) {
       re = new RegExp('/^[1-9]*[0-9](\.[0-9]{' + precision + '})?$/');
     }
     return re.test(v.toString());
@@ -157,6 +176,11 @@
     el.parent().find('.clue').addClass('hidden');
   }
 
+  function _isEmail(v) {
+    var re = /^([a-z][0-9])+(\._-[a-z][0-9])*([a-z][0-9])+((\._-[a-z][0-9]))*\.[a-z]{2,3}@$/i;
+    return re.test(v.toString());
+  }
+
   /*****************************************************************************
    * Description: this function checks if the input is correct looking for the 
    * html5 attributes and data-attributes set on the code.
@@ -176,14 +200,45 @@
       return false;
     }
 
+    var minLength = el.attr('data-minlength');
+    if (typeof minLength !== 'undefined') {
+      if (_isNatural(minLength)) {
+        if (el.val().length < parseInt(minLength)) {
+          _setError(el);
+          return false;
+        }
+      } else {//help for programmer in order to locate errors in his/her code
+        _log(el.attr('id') + ' - minLength error: ' + errorMessages.needNumericParam);
+        return false;
+      }
+    }
+
+    var maxLength = el.attr('data-maxlength');
+    if (typeof maxLength !== 'undefined') {
+      if (_isNatural(maxLength)) {
+        if (typeof minLength !== 'undefined' && parseInt(minLength) > parseInt(maxLength)) {
+          _log(el.attr('id') + ' - maxLength error: ' + errorMessages.minValueMustbeLower);
+          return false;
+        }
+        if (el.val().length > parseInt(maxLength)) {
+          _setError(el);
+          return false;
+        }
+      } else {//help for programmer in order to locate errors in his/her code
+        _log(el.attr('id') + ' - maxLength error: ' + errorMessages.needNumericParam);
+        return false;
+      }
+    }
+
     //specific validations by type
     if (type === 'number') {
+      var precision = el.attr('data-precision');
       var numberType = el.attr('data-numclass');
       if (typeof numberType !== 'undefined') {
         if ((numberType === 'natural' && !_isNatural(el.val()))
                 || (numberType === 'integer' && !_isInteger(el.val()))
-                || (numberType === 'decimal' && !_isDecimal(el.val()))
-                || (numberType === 'pdecimal' && !_isPositiveDecimal(el.val()))
+                || (numberType === 'decimal' && !_isDecimal(el.val(), precision))
+                || (numberType === 'pdecimal' && !_isPositiveDecimal(el.val(), precision))
                 || !_isScientificNumber(el.val())) {
           _setError(el);
           return false;
@@ -204,36 +259,13 @@
         _setError(el);
         return false;
       }
+    } else if (type === 'email') {
+      if (!_isEmail(el.val())) {
+        _setError(el);
+        return false;
+      }
     } else {
-      var minLength = el.attr('data-minlength');
-      if (typeof minLength !== 'undefined') {
-        if (_isNatural(minLength)) {
-          if (el.val().length < parseInt(minLength)) {
-            _setError(el);
-            return false;
-          }
-        } else {//help for programmer in order to locate errors in his/her code
-          _log(el.attr('id') + ' - minLength error: ' + errorMessages.needNumericParam);
-          return false;
-        }
-      }
-
-      var maxLength = el.attr('data-maxlength');
-      if (typeof maxLength !== 'undefined') {
-        if (_isNatural(maxLength)) {
-          if (typeof minLength !== 'undefined' && parseInt(minLength) > parseInt(maxLength)) {
-            _log(el.attr('id') + ' - maxLength error: ' + errorMessages.minValueMustbeLower);
-            return false;
-          }
-          if (el.val().length > parseInt(maxLength)) {
-            _setError(el);
-            return false;
-          }
-        } else {//help for programmer in order to locate errors in his/her code
-          _log(el.attr('id') + ' - maxLength error: ' + errorMessages.needNumericParam);
-          return false;
-        }
-      }
+      //text validation
     }
 
     _unsetError(el);
@@ -326,7 +358,8 @@
       html5: false,
       focusFirst: true,
       stopOnError: false,
-      liveValidation: false
+      liveValidation: false,
+      comaDecimal:false
     };
     //Option settings. Overwritten if defined by the programmer
     var o = jQuery.extend(defaults, options);
