@@ -78,11 +78,61 @@
    * Description: this function checks if the a value is a natural numer.
    * In params:
    *  @v {number}: variable to be checked
-   * Return: none
+   * Return: boolean
    ****************************************************************************/
-  function _isPositiveNumber(v) {
+  function _isNatural(v) {
     var re = /^[1-9]*[0-9]$/;
-    return re.test(v);
+    return re.test(v.toString());
+  }
+
+  /*****************************************************************************
+   * Description: this function checks if the a value is an integer.
+   * In params:
+   *  @v {number}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _isInteger(v) {
+    var re = /^\-?[1-9]*[0-9]$/;
+    return re.test(v.toString());
+  }
+
+  /*****************************************************************************
+   * Description: this function checks if the a value is a real numer.
+   * In params:
+   *  @v {number}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _isDecimal(v, precision) {
+    var re = /^\-?[1-9]*[0-9](\.[0-9]+)?$/;
+    if (typeof precision === 'undefined' && _isNatural(precision)) {
+      re = new RegExp('/^\-?[1-9]*[0-9](\.[0-9]{' + precision + '})?$/');
+    }
+    return re.test(v.toString());
+  }
+
+  /*****************************************************************************
+   * Description: this function checks if the a value is a positive real numer.
+   * In params:
+   *  @v {number}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _isPositiveDecimal(v, precision) {
+    var re = /^[1-9]*[0-9](\.[0-9]+)?$/;
+    if (typeof precision === 'undefined' && _isNatural(precision)) {
+      re = new RegExp('/^[1-9]*[0-9](\.[0-9]{' + precision + '})?$/');
+    }
+    return re.test(v.toString());
+  }
+
+  /*****************************************************************************
+   * Description: this function checks if the a value is number even if it is
+   * representen by exponentials. It will return false not a finite number
+   * In params:
+   *  @v {number}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _isScientificNumber(v) {
+    return isFinite(v.toString());
   }
 
   /*****************************************************************************
@@ -115,38 +165,77 @@
    * Return: boolean
    ****************************************************************************/
   function _inputValidate(el) {
+    var type = "text";
+    if (typeof el.attr('type') !== 'undefined') {
+      type = el.attr('type');
+    }
+
+    //common validations
     if (typeof el.attr('required') !== 'undefined' && el.val().length < 1) {
       _setError(el);
       return false;
     }
-    var minLength = el.attr('data-minlength');
-    if (typeof minLength !== 'undefined') {
-      if (_isPositiveNumber(minLength)) {
-        if (el.val().length < parseInt(minLength)) {
-          _setError(el);
-          return false;
-        }
-      } else {//help for programmer in order to locate errors in his/her code
-        _log(el.attr('id') + ' - minLength error: ' + errorMessages.needNumericParam);
-        return false;
-      }
-    }
-    var maxLength = el.attr('data-maxlength');
-    if (typeof maxLength !== 'undefined') {
-      if (_isPositiveNumber(maxLength)) {
-        if (typeof minLength !== 'undefined' && parseInt(minLength) > parseInt(maxLength)) {
-          _log(el.attr('id') + ' - maxLength error: ' + errorMessages.minValueMustbeLower);
-          return false;
-        }
-        if (el.val().length > parseInt(maxLength)) {
+
+    //specific validations by type
+    if (type === 'number') {
+      var numberType = el.attr('data-numclass');
+      if (typeof numberType !== 'undefined') {
+        if ((numberType === 'natural' && !_isNatural(el.val()))
+                || (numberType === 'integer' && !_isInteger(el.val()))
+                || (numberType === 'decimal' && !_isDecimal(el.val()))
+                || (numberType === 'pdecimal' && !_isPositiveDecimal(el.val()))
+                || !_isScientificNumber(el.val())) {
           _setError(el);
           return false;
         }
       } else {
-        _log(el.attr('id') + ' - maxLength error: ' + errorMessages.needNumericParam);
+        if (!_isScientificNumber(el.val())) {
+          _setError(el);
+          return false;
+        }
+      }
+      var min = el.attr('min');
+      if (min !== 'undefined' && parseFloat(el.val()) < parseFloat(min)) {
+        _setError(el);
         return false;
       }
+      var max = el.attr('max');
+      if (max !== 'undefined' && parseFloat(el.val()) > parseFloat(max)) {
+        _setError(el);
+        return false;
+      }
+    } else {
+      var minLength = el.attr('data-minlength');
+      if (typeof minLength !== 'undefined') {
+        if (_isNatural(minLength)) {
+          if (el.val().length < parseInt(minLength)) {
+            _setError(el);
+            return false;
+          }
+        } else {//help for programmer in order to locate errors in his/her code
+          _log(el.attr('id') + ' - minLength error: ' + errorMessages.needNumericParam);
+          return false;
+        }
+      }
+
+      var maxLength = el.attr('data-maxlength');
+      if (typeof maxLength !== 'undefined') {
+        if (_isNatural(maxLength)) {
+          if (typeof minLength !== 'undefined' && parseInt(minLength) > parseInt(maxLength)) {
+            _log(el.attr('id') + ' - maxLength error: ' + errorMessages.minValueMustbeLower);
+            return false;
+          }
+          if (el.val().length > parseInt(maxLength)) {
+            _setError(el);
+            return false;
+          }
+        } else {//help for programmer in order to locate errors in his/her code
+          _log(el.attr('id') + ' - maxLength error: ' + errorMessages.needNumericParam);
+          return false;
+        }
+      }
     }
+
     _unsetError(el);
     return true;
   }
@@ -273,7 +362,7 @@
               if (first === null)
                 first = $(v);
               if (o.stopOnError) {
-                return false;//stop iteration; we don't need to loof further errors
+                return false; //stop iteration; we don't need to loof further errors
               }
             }
           });
@@ -284,7 +373,7 @@
                 if (first === null)
                   first = $(v);
                 if (o.stopOnError) {
-                  return false;//stop iteration; we don't need to loof further errors
+                  return false; //stop iteration; we don't need to loof further errors
                 }
               }
             });
@@ -296,7 +385,7 @@
                 if (first === null)
                   first = $(v);
                 if (o.stopOnError) {
-                  return false;//stop iteration; we don't need to loof further errors
+                  return false; //stop iteration; we don't need to loof further errors
                 }
               }
             });
