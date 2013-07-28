@@ -56,10 +56,10 @@
 /*
  * TODO LIST:
  * -> ajax (webservice checking)
- * -> alphanumeric
- * -> free entry (all characters allowed)
+ * -> nohtml (do not allow <, >, " and ' characters)
  * -> textarea
  * -> select
+ * -> date, time and datetime data-previous attribute to check if the value of another field is lower than the current
  */
 (function($) {
 
