@@ -1,6 +1,6 @@
 /* ****************************************************************************
  * Filename: jquery.formvalidator.js
- * Version: 0.1.0, July 2013
+ * Version: 0.6.0, July 2013
  * Tested jquery versions:
  * - jQuery v1.8.3
  * ****************************************************************************
@@ -333,6 +333,14 @@
       }
     } else {
       //text validation
+      var pattern = el.attr('pattern');
+      if(typeof pattern !== 'undefined'){
+        var re = new RegExp(pattern);
+        if(!re.test(el.val())){
+          _setError(el);
+          return false;
+        }
+      }
     }
 
     _unsetError(el);
