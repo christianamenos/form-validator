@@ -1,6 +1,6 @@
 /* ****************************************************************************
  * Filename: jquery.formvalidator.js
- * Version: 0.6.0, July 2013
+ * Version: 0.7.0, July 2013
  * Tested jquery versions:
  * - jQuery v1.8.3
  * ****************************************************************************
@@ -55,12 +55,9 @@
 
 /*
  * TODO LIST:
- * -> regular expression tag
  * -> ajax (webservice checking)
- * -> date
- * -> datetime
  * -> alphanumeric
- * -> free etry (all characters allowed)
+ * -> free entry (all characters allowed)
  * -> textarea
  * -> select
  */
@@ -85,6 +82,11 @@
     } else {
       alert(obj);
     }
+  }
+  
+  function _isAlphanumeric(v){
+    var re = /^([0-9][a-z])*$/i;
+    return re.test(v.toString());
   }
 
   /*****************************************************************************
@@ -337,6 +339,13 @@
       if(typeof pattern !== 'undefined'){
         var re = new RegExp(pattern);
         if(!re.test(el.val())){
+          _setError(el);
+          return false;
+        }
+      }
+      var textType = el.attr('data-type');
+      if(typeof textType !== 'undefined'){
+        if(textType === 'aphanumeric' && !_isAlphanumeric()){
           _setError(el);
           return false;
         }
