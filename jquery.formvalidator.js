@@ -117,12 +117,12 @@
    ****************************************************************************/
   function _isDecimal(v, precision) {
     var re = /^-?[1-9]*[0-9](\.[0-9]+)?$/;
-    if(o.comaDecimal){
+    if (o.comaDecimal) {
       re = /^-?[1-9]*[0-9](,[0-9]+)?$/;
     }
     if (typeof precision !== 'undefined' && _isNatural(precision)) {
       re = new RegExp('/^\-?[1-9]*[0-9](\.[0-9]{' + precision + '})?$/');
-      if(o.comaDecimal){
+      if (o.comaDecimal) {
         re = new RegExp('/^\-?[1-9]*[0-9](,[0-9]{' + precision + '})?$/');
       }
     }
@@ -152,6 +152,58 @@
    ****************************************************************************/
   function _isScientificNumber(v) {
     return isFinite(v.toString());
+  }
+
+  function _isDate(v) {
+    //first we check if the format is correct default date format DD/MM/YYY
+    var re = /^((3[0-1])|([0-2][0-9]))\/((1[0-2])|(0[0-9]))\/([0-9]{4})$/;
+    var dayPos = 0;
+    var monthPos = 1;
+    var yearPos = 2;
+    if (o.formatDate === 'mdy') {//MM/DD/YYYY format
+      re = /^((1[0-2])|(0[0-9]))\/((3[0-1])|([0-2][0-9]))\/([0-9]{4})$/;
+      dayPos = 1;
+      monthPos = 0;
+      yearPos = 2;
+    } else if (o.formatDate === 'ymd') {//YYYY/MM/DD format
+      re = /^([0-9]{4})\/((1[0-2])|(0[0-9]))\/((3[0-1])|([0-2][0-9]))$/;
+      dayPos = 2;
+      monthPos = 1;
+      yearPos = 0;
+    }
+    if (!re.test(v.toString())) {
+      return false;
+    }
+    //if the format is correct we check is it is a valid date
+    var dateComponents = v.split('/');
+    var day = parseInt(dateComponents[dayPos]);
+    var month = parseInt(dateComponents[monthPos]);
+    var year = parseInt(dateComponents[yearPos]);
+    var daysInMonth = 31;
+    if (month < 1 || month > 12) {
+      return false;
+    }
+    if (month === 2) {
+      daysInMonth = (((year % 4 === 0) && ((!(year % 100 === 0)) || (year % 400 === 0))) ? 29 : 28);
+    } else if (month === 4 || month === 6 || month === 9 || month === 11) {
+      daysInMonth = 30;
+    }
+    if (day < 1 || day > daysInMonth) {
+      return false;
+    }
+    return true;
+  }
+
+  function _isTime(v) {
+    var re = /^((2[0-3])|([0-1][0-9]))\:([0-5][0-9])\:([0-5][0-9])$/;
+    if (!re.test(v.toString())) {
+      return false;
+    }
+  }
+
+  function _isDatetime(v) {
+    var datetime = v.split(' ');
+    return _isDate(datetime[0]) && _isTime(datetime[1]);
   }
 
   /*****************************************************************************
@@ -264,6 +316,21 @@
         _setError(el);
         return false;
       }
+    } else if (type === 'date') {
+      if (!_isDate(el.val())) {
+        _setError(el);
+        return false;
+      }
+    } else if (type === 'datetime') {
+      if (!_isDatetime(el.val())) {
+        _setError(el);
+        return false;
+      }
+    } else if (type === 'time') {
+      if (!_isTime(el.val())) {
+        _setError(el);
+        return false;
+      }
     } else {
       //text validation
     }
@@ -351,6 +418,11 @@
    * @stopOnError {bool}: if an error is found we stop looking for more errors.
    * @liveValidation {bool}: each time an input changes it's value the field is
    * validated. Otherwise validate will be activated on form's submit.
+   * @comaDecimal {bool}: this param allow the user to enter decimals separating
+   * the natural part of the number and the decimal part by a coma.
+   * @formatDate {string} Possible values {dmy, mdy, ymd}: this param allow to
+   * check date formats on a variation of formats depending on the locale of
+   * users.
    ****************************************************************************/
   jQuery.fn.formvalidator = function(options) {
     //Default plugin's attributes
@@ -359,7 +431,8 @@
       focusFirst: true,
       stopOnError: false,
       liveValidation: false,
-      comaDecimal:false
+      comaDecimal: false,
+      formatDate: 'dmy'
     };
     //Option settings. Overwritten if defined by the programmer
     var o = jQuery.extend(defaults, options);
