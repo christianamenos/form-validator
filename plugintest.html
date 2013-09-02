@@ -11,10 +11,12 @@
       body{font-family:sans-serif;font-size:14px;}
       .hidden{display:none;}
       input, select, textarea{border:1px solid #454545;border-radius:2px;padding:3px 6px;}
-      .form-elem{margin-bottom:4px;}
+      label{width:100px;display:inline-block;}
+      .form-elem{margin-bottom:10px;}
       .form-elem .clue{font-size:12px;}
       .form-elem.error{color:crimson;}
-      .form-elem.error input, .form-elem select, .form-elem textarea{border-color:crimson;color:crimson;}
+      .form-elem.error input, .form-elem.error select, .form-elem.error textarea{border-color:crimson;color:crimson;}
+      *[data-showafter]{display:none;}
     </style>
   </head>
   <body>
@@ -24,10 +26,58 @@
         <input type="text" name="i1" id="i1" required="required" data-minlength="2" data-maxlength="8" pattern="[0-9][A-Z]*"/>
         <div class="clue hidden">Max length:6; Min length:2; Required:true; Alfanumeric pattern uppercase</div>
       </div>
-      <div class="form-elem">
+      <div class="form-elem" data-showafter="day">
         <label for="i2">Input text</label>
         <input type="number" name="i2" id="i2" required="required" min="2" max="8"/>
         <div class="clue hidden">Max value:8; Min value:2; Required:true;</div>
+      </div>
+      <div class="form-elem">
+        <label for="i3">Input text</label>
+        <input type="text" name="i3" id="i3" required="required" data-webservice="http://christianamenos.es" data-param="param1"/>
+        <div class="clue hidden">Webservice value validation; Required:true;</div>
+      </div>
+      <div class="form-elem">
+        <label for="i4">Textarea</label>
+        <textarea name="i4" id="i4" required="required"></textarea>
+        <div class="clue hidden">Webservice value validation; Required:true;</div>
+      </div>
+      <div class="form-elem">
+        <label for="day">Input text</label>
+        <select name="day" id="day" required="required" data-type="day">
+          <option value="">--- Day selection ---</option>
+        </select>
+        <script type="text/javascript">
+        for (var i = 1; i < 32; i++) {
+          $('#day').append('<option value="' + i + '">' + i + '</option>');
+        }
+        </script>
+        <div class="clue hidden">Day (1-31); Required:true;</div>
+      </div>
+      <div class="form-elem" data-showafter="day">
+        <label for="month">Input text</label>
+        <select name="month" id="month" required="required" data-type="month">
+          <option value="">--- Month selection ---</option>
+        </select>
+        <script type="text/javascript">
+        for (var i = 1; i < 13; i++) {
+          $('#month').append('<option value="' + i + '">' + i + '</option>');
+        }
+        </script>
+        <div class="clue hidden">Day (1-31); Required:true;</div>
+      </div>
+      <div class="form-elem" data-showafter="month">
+        <label for="year">Input text</label>
+        <select name="year" id="year" required="required" data-type="year">
+          <option value="">--- Year selection ---</option>
+        </select>
+        <script type="text/javascript">
+          var d = new Date();
+          var y = d.getFullYear();
+        for (var i = 1900; i <= y; i++) {
+          $('#year').append('<option value="' + i + '">' + i + '</option>');
+        }
+        </script>
+        <div class="clue hidden">Day (1-31); Required:true;</div>
       </div>
       <button>Enviar</button>
     </form>

@@ -55,11 +55,9 @@
 
 /*
  * TODO LIST:
- * -> ajax (webservice checking)
  * -> nohtml (do not allow <, >, " and ' characters)
- * -> textarea
- * -> select
- * -> date, time and datetime data-previous attribute to check if the value of another field is lower than the current
+ * -> select day, select month, select year
+ * -> date, time and datetime data-previous attribute to check if the value of another field is set and lower than the current
  */
 (function($) {
 
@@ -83,8 +81,33 @@
       alert(obj);
     }
   }
-  
-  function _isAlphanumeric(v){
+
+  /*****************************************************************************
+   * Description: this function will check if the argument is a valid url for an
+   * ajax call; which means that can be a http or https request using a local or
+   * domain path (note that in case of call a webservice from another domain,
+   * a callback function will be needed to fullfil the request correctly with
+   * jsonp).
+   * Example of valid url:
+   * http://christianamenos.es/sub-path#id?param1=value1&param2=value2
+   * In params:
+   *  @v {string}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _validAjaxUrl(v) {
+    var re = /^((http(s)?\:\/\/(www\.)?)|\/)?[a-z0-9]+([\.\/\-][a-z0-9]+)*(#[a-z0-9]*)?(\?([a-z0-9]+=[a-z0-9]+)(&[a-z0-9]+=[a-z0-9]+)*)?$/i;
+    return re.test(v.toString());
+  }
+
+  /*****************************************************************************
+   * Description: this function checks if the a value is an alphanumeric value;
+   * in other words if it is composed by numeric and letters of the basic
+   * vocabulary (from a to z)
+   * In params:
+   *  @v {string}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _isAlphanumeric(v) {
     var re = /^([0-9][a-z])*$/i;
     return re.test(v.toString());
   }
@@ -156,6 +179,16 @@
     return isFinite(v.toString());
   }
 
+  /*****************************************************************************
+   * Description: this function checks if the a value is a valid date in one of
+   * these formats:
+   * - day/month/year (DD/MM/YYYY)
+   * - month/day/year (MM/DD/YYYY)
+   * - year/month/day (YYYY/MM/DD)
+   * In params:
+   *  @v {string}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
   function _isDate(v) {
     //first we check if the format is correct default date format DD/MM/YYY
     var re = /^((3[0-1])|([0-2][0-9]))\/((1[0-2])|(0[0-9]))\/([0-9]{4})$/;
@@ -196,6 +229,13 @@
     return true;
   }
 
+  /*****************************************************************************
+   * Description: this function checks if the a value is a valid time. This is
+   * the time has a hour:minute:second (HH:mm:ss) format
+   * In params:
+   *  @v {string}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
   function _isTime(v) {
     var re = /^((2[0-3])|([0-1][0-9]))\:([0-5][0-9])\:([0-5][0-9])$/;
     if (!re.test(v.toString())) {
@@ -203,6 +243,13 @@
     }
   }
 
+  /*****************************************************************************
+   * Description: this function checks if the a value is a valid date time using
+   * both _isDate and _isTime functions
+   * In params:
+   *  @v {string}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
   function _isDatetime(v) {
     var datetime = v.split(' ');
     return _isDate(datetime[0]) && _isTime(datetime[1]);
@@ -229,31 +276,54 @@
     el.parent().removeClass('error');
     el.parent().find('.clue').addClass('hidden');
   }
+  
+  /*****************************************************************************
+   * Description: this function shows any element that is hidden if this element
+   * is waiting for a field to be valid. This functionality aims to create a
+   * dynamic validation efect
+   * In params:
+   *  @v {string}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _unblockObservers(id){
+    $("*[data-showafter='"+id+"']").show();
+  }
 
+  /*****************************************************************************
+   * Description: this function checks if the a value has a valid email format.
+   * In params:
+   *  @v {string}: variable to be checked
+   * Return: boolean
+   ****************************************************************************/
   function _isEmail(v) {
-    var re = /^([a-z][0-9])+(\._-[a-z][0-9])*([a-z][0-9])+((\._-[a-z][0-9]))*\.[a-z]{2,3}@$/i;
+    var re = /^[a-z0-9]+[\._\-a-z0-9]*@[a-z0-9]+[\._\-a-z0-9]*\.[a-z]{2,3}$/i;
     return re.test(v.toString());
   }
 
   /*****************************************************************************
-   * Description: this function checks if the input is correct looking for the 
-   * html5 attributes and data-attributes set on the code.
+   * Description: this function checks if the field has a value and marks the
+   * element if not
    * In params:
-   *  @el {jquery elem}: element to check correctness
+   *  @el {jquery object}: field to be checked
    * Return: boolean
    ****************************************************************************/
-  function _inputValidate(el) {
-    var type = "text";
-    if (typeof el.attr('type') !== 'undefined') {
-      type = el.attr('type');
-    }
-
-    //common validations
+  function _validateRequired(el) {
     if (typeof el.attr('required') !== 'undefined' && el.val().length < 1) {
       _setError(el);
       return false;
     }
+    return true;
+  }
 
+  /*****************************************************************************
+   * Description: this function checks if the field has a value which length is
+   * greater than the specified minimum length value. In case the value does not
+   * surpass the minimum length, the field will be marked with error
+   * In params:
+   *  @el {jquery object}: field to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _validateMinLength(el) {
     var minLength = el.attr('data-minlength');
     if (typeof minLength !== 'undefined') {
       if (_isNatural(minLength)) {
@@ -266,7 +336,18 @@
         return false;
       }
     }
+    return true;
+  }
 
+  /*****************************************************************************
+   * Description: this function checks if the field has a value which length is
+   * lower than the specified maximum length value. In case the value does not
+   * surpass the maximum length, the field will be marked with error
+   * In params:
+   *  @el {jquery object}: field to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _validateMaxLength(el) {
     var maxLength = el.attr('data-maxlength');
     if (typeof maxLength !== 'undefined') {
       if (_isNatural(maxLength)) {
@@ -283,6 +364,74 @@
         return false;
       }
     }
+    return true;
+  }
+
+  /*****************************************************************************
+   * Description: this fuction calls a json webservice and validates field value;
+   * the expected return is a true/false value; if not parameter name defined
+   * will be used the field id instead. In case of error the field will be marked
+   * this way
+   * In params:
+   *  @el {jquery object}: field to be checked
+   * Return: boolean
+   ****************************************************************************/
+  function _validateWebService(el) {
+    var textType = el.attr('data-webservice');
+    if (typeof textType !== 'undefined') {
+      var paramName = el.attr('data-param');
+      var requestType = el.attr('data-reqtype');
+      //post ajax request by default
+      var reqType = 'post';
+      if (typeof paramName === 'undefined')
+        paramName = el.attr('id');
+      if (typeof requestType !== 'undefined' && requestType === 'get')
+        reqType = requestType;
+      if (!_validAjaxUrl(textType)) {
+        _setError(el);
+        return false;
+      } else {
+        var params = {};
+        params[paramName] = el.val();
+        $.ajax({
+          data: params,
+          url: textType,
+          type: reqType,
+          success: function(response) {
+            if (!response)
+              _setError(el);
+          },
+          error: function() {
+            _setError(el);
+          }
+        });
+      }
+    }
+    return true;
+  }
+
+  /*****************************************************************************
+   * Description: this function checks if the input is correct looking for the 
+   * html5 attributes and data-attributes set on the code.
+   * In params:
+   *  @el {jquery elem}: element to check correctness
+   * Return: boolean
+   ****************************************************************************/
+  function _inputValidate(el) {
+    var type = "text";
+    if (typeof el.attr('type') !== 'undefined') {
+      type = el.attr('type');
+    }
+
+    //common validations
+    if (!_validateRequired(el))
+      return false;
+    if (!_validateMinLength(el))
+      return false;
+    if (!_validateMaxLength(el))
+      return false;
+    if (!_validateWebService(el))
+      return false;
 
     //specific validations by type
     if (type === 'number') {
@@ -336,16 +485,16 @@
     } else {
       //text validation
       var pattern = el.attr('pattern');
-      if(typeof pattern !== 'undefined'){
+      if (typeof pattern !== 'undefined') {
         var re = new RegExp(pattern);
-        if(!re.test(el.val())){
+        if (!re.test(el.val())) {
           _setError(el);
           return false;
         }
       }
       var textType = el.attr('data-type');
-      if(typeof textType !== 'undefined'){
-        if(textType === 'aphanumeric' && !_isAlphanumeric()){
+      if (typeof textType !== 'undefined') {
+        if (textType === 'aphanumeric' && !_isAlphanumeric()) {
           _setError(el);
           return false;
         }
@@ -353,6 +502,7 @@
     }
 
     _unsetError(el);
+    _unblockObservers(el.attr('id'));
     return true;
   }
 
@@ -364,8 +514,15 @@
    * Return: boolean
    ****************************************************************************/
   function _selectValidate(el) {
-    _log(el);
-    return false;
+    //common validations
+    if(!_validateRequired(el))
+      return false;
+    if(!_validateWebService(el))
+      return false;
+
+    _unsetError(el);
+    _unblockObservers(el.attr('id'));
+    return true;
   }
 
   /*****************************************************************************
@@ -376,8 +533,19 @@
    * Return: boolean
    ****************************************************************************/
   function _textareaValidate(el) {
-    _log(el);
-    return false;
+    //common validations
+    if (!_validateRequired(el))
+      return false;
+    if (!_validateMinLength(el))
+      return false;
+    if (!_validateMaxLength(el))
+      return false;
+    if (!_validateWebService(el))
+      return false;
+
+    _unsetError(el);
+    _unblockObservers(el.attr('id'));
+    return true;
   }
 
   /*****************************************************************************
@@ -405,6 +573,9 @@
    ****************************************************************************/
   function _selectBinding(el) {
     el.on('focusout', function(e) {
+      _selectValidate($(e.target));
+    });
+    el.on('change', function(e) {
       _selectValidate($(e.target));
     });
   }
