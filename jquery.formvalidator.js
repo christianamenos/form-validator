@@ -263,7 +263,8 @@
    ****************************************************************************/
   function _setError(el) {
     el.parent().addClass('error');
-    el.parent().find('.clue').removeClass('hidden');
+    //el.parent().find('.clue').removeClass('hidden');
+    el.parent().find('.clue').show();
   }
 
   /*****************************************************************************
@@ -274,7 +275,8 @@
    ****************************************************************************/
   function _unsetError(el) {
     el.parent().removeClass('error');
-    el.parent().find('.clue').addClass('hidden');
+    //el.parent().find('.clue').addClass('hidden');
+    el.parent().find('.clue').hide();
   }
   
   /*****************************************************************************
@@ -426,13 +428,15 @@
     //common validations
     if (!_validateRequired(el))
       return false;
+    if(el.val() == '')
+      return true;
     if (!_validateMinLength(el))
       return false;
     if (!_validateMaxLength(el))
       return false;
     if (!_validateWebService(el))
       return false;
-
+      
     //specific validations by type
     if (type === 'number') {
       var precision = el.attr('data-precision');
@@ -517,6 +521,8 @@
     //common validations
     if(!_validateRequired(el))
       return false;
+    if(el.val() == '')
+      return true;
     if(!_validateWebService(el))
       return false;
 
@@ -536,6 +542,8 @@
     //common validations
     if (!_validateRequired(el))
       return false;
+    if(el.val() == '')
+      return true;
     if (!_validateMinLength(el))
       return false;
     if (!_validateMaxLength(el))
@@ -656,7 +664,7 @@
               if (first === null)
                 first = $(v);
               if (o.stopOnError) {
-                return false; //stop iteration; we don't need to loof further errors
+                return false; //stop iteration; we don't need to look for further errors
               }
             }
           });
@@ -667,7 +675,7 @@
                 if (first === null)
                   first = $(v);
                 if (o.stopOnError) {
-                  return false; //stop iteration; we don't need to loof further errors
+                  return false; //stop iteration; we don't need to look for further errors
                 }
               }
             });
@@ -679,7 +687,7 @@
                 if (first === null)
                   first = $(v);
                 if (o.stopOnError) {
-                  return false; //stop iteration; we don't need to loof further errors
+                  return false; //stop iteration; we don't need to look for further errors
                 }
               }
             });
